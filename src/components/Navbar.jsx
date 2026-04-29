@@ -21,6 +21,7 @@ const Navbar = () => {
           <div style={styles.links}>
             <Link to="/dashboard" style={styles.link}>Dashboard</Link>
             <Link to="/leads" style={styles.link}>Leads</Link>
+            <Link to="/deals" style={styles.link}>Deals</Link>
             <Link to="/customers" style={styles.link}>Customers</Link>
           </div>
 

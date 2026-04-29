@@ -6,7 +6,7 @@ import API from "../api/axios";
 const Register = () => {
     const [formData, setFormData] = useState({ name: "", email: "", password: "" });
     const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [Loading, setLoading] = useState(false);
 
     const { login } = useAuth();
     const navigate = useNavigate();
