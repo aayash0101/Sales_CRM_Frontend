@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import API from "../api/axios";
 
+const statusColors = {
+  new: "bg-indigo-100 text-indigo-700",
+  contacted: "bg-yellow-100 text-yellow-700",
+  qualified: "bg-green-100 text-green-700",
+  converted: "bg-blue-100 text-blue-700",
+};
+
 const Leads = () => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -8,10 +15,10 @@ const Leads = () => {
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     name: "", email: "", phone: "", company: "", status: "new",
   });
-  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     fetchLeads();
@@ -55,13 +62,14 @@ const Leads = () => {
   const handleEdit = (lead) => {
     setFormData({
       name: lead.name,
-      email: lead.email,
-      phone: lead.phone,
-      company: lead.company,
+      email: lead.email || "",
+      phone: lead.phone || "",
+      company: lead.company || "",
       status: lead.status,
     });
     setEditingId(lead._id);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id) => {
@@ -80,39 +88,129 @@ const Leads = () => {
     setShowForm(false);
   };
 
-  const statusColors = {
-    new: "#6366f1",
-    contacted: "#f59e0b",
-    qualified: "#10b981",
-    converted: "#3b82f6",
-  };
-
-  if (loading) return <p style={styles.center}>Loading leads...</p>;
-
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1>Leads</h1>
-        <button style={styles.addButton} onClick={() => setShowForm(!showForm)}>
+    <div className="max-w-6xl mx-auto px-6 py-8">
+
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Leads</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {leads.length} lead{leads.length !== 1 ? "s" : ""}
+            {statusFilter && ` · ${statusFilter}`}
+            {search && ` · "${search}"`}
+          </p>
+        </div>
+        <button
+          onClick={() => { setShowForm(!showForm); setEditingId(null); }}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+        >
           {showForm ? "Cancel" : "+ Add Lead"}
         </button>
       </div>
 
-      {error && <p style={styles.error}>{error}</p>}
+      {error && (
+        <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-6">
+          {error}
+        </div>
+      )}
 
-      {/* Search and Filter Bar */}
-      <div style={styles.filterBar}>
+      {/* Form */}
+      {showForm && (
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">
+            {editingId ? "Edit Lead" : "New Lead"}
+          </h3>
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="John Doe"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="john@example.com"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="9800000000"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                <input
+                  name="company"
+                  value={formData.company}
+                  onChange={handleChange}
+                  placeholder="Acme Inc."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="new">New</option>
+                  <option value="contacted">Contacted</option>
+                  <option value="qualified">Qualified</option>
+                  <option value="converted">Converted</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-colors"
+              >
+                {editingId ? "Update Lead" : "Create Lead"}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-5 py-2 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Search and Filter */}
+      <div className="flex gap-3 mb-6">
         <input
           type="text"
           placeholder="Search by name, email, company..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          style={styles.searchInput}
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          style={styles.filterSelect}
+          className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <option value="">All Statuses</option>
           <option value="new">New</option>
@@ -123,115 +221,72 @@ const Leads = () => {
         {(search || statusFilter) && (
           <button
             onClick={() => { setSearch(""); setStatusFilter(""); }}
-            style={styles.clearButton}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm rounded-lg transition-colors"
           >
             Clear
           </button>
         )}
       </div>
 
-      {/* Form */}
-      {showForm && (
-        <div style={styles.form}>
-          <h3>{editingId ? "Edit Lead" : "New Lead"}</h3>
-          <form onSubmit={handleSubmit}>
-            <div style={styles.grid}>
-              <input name="name" placeholder="Name *" value={formData.name} onChange={handleChange} style={styles.input} required />
-              <input name="email" placeholder="Email" value={formData.email} onChange={handleChange} style={styles.input} />
-              <input name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} style={styles.input} />
-              <input name="company" placeholder="Company" value={formData.company} onChange={handleChange} style={styles.input} />
-              <select name="status" value={formData.status} onChange={handleChange} style={styles.input}>
-                <option value="new">New</option>
-                <option value="contacted">Contacted</option>
-                <option value="qualified">Qualified</option>
-                <option value="converted">Converted</option>
-              </select>
-            </div>
-            <div style={styles.formButtons}>
-              <button type="submit" style={styles.addButton}>
-                {editingId ? "Update Lead" : "Create Lead"}
-              </button>
-              <button type="button" onClick={handleCancel} style={styles.cancelButton}>
-                Cancel
-              </button>
-            </div>
-          </form>
+      {/* Table */}
+      {loading ? (
+        <p className="text-center text-gray-400 py-12">Loading leads...</p>
+      ) : leads.length === 0 ? (
+        <div className="text-center py-16 text-gray-400">
+          <p className="text-lg mb-1">No leads found</p>
+          <p className="text-sm">
+            {search || statusFilter ? "Try adjusting your filters" : "Add your first lead to get started"}
+          </p>
         </div>
-      )}
-
-      {/* Results count */}
-      <p style={styles.resultsCount}>
-        {leads.length} lead{leads.length !== 1 ? "s" : ""} found
-        {statusFilter && ` · ${statusFilter}`}
-        {search && ` · "${search}"`}
-      </p>
-
-      {/* Leads Table */}
-      {leads.length === 0 ? (
-        <p style={styles.center}>
-          {search || statusFilter ? "No leads match your search." : "No leads yet. Add your first lead!"}
-        </p>
       ) : (
-        <table style={styles.table}>
-          <thead>
-            <tr style={styles.thead}>
-              <th style={styles.th}>Name</th>
-              <th style={styles.th}>Email</th>
-              <th style={styles.th}>Company</th>
-              <th style={styles.th}>Status</th>
-              <th style={styles.th}>Created By</th>
-              <th style={styles.th}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {leads.map((lead) => (
-              <tr key={lead._id} style={styles.tr}>
-                <td style={styles.td}>{lead.name}</td>
-                <td style={styles.td}>{lead.email || "—"}</td>
-                <td style={styles.td}>{lead.company || "—"}</td>
-                <td style={styles.td}>
-                  <span style={{ ...styles.badge, backgroundColor: statusColors[lead.status] }}>
-                    {lead.status}
-                  </span>
-                </td>
-                <td style={styles.td}>{lead.createdBy?.name || "—"}</td>
-                <td style={styles.td}>
-                  <button onClick={() => handleEdit(lead)} style={styles.editButton}>Edit</button>
-                  <button onClick={() => handleDelete(lead._id)} style={styles.deleteButton}>Delete</button>
-                </td>
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-6 py-3">Name</th>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-6 py-3">Email</th>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-6 py-3">Company</th>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-6 py-3">Status</th>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-6 py-3">Created By</th>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-6 py-3">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {leads.map((lead) => (
+                <tr key={lead._id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-800">{lead.name}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{lead.email || "—"}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{lead.company || "—"}</td>
+                  <td className="px-6 py-4">
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[lead.status]}`}>
+                      {lead.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">{lead.createdBy?.name || "—"}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(lead)}
+                        className="text-xs font-medium px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200 transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(lead._id)}
+                        className="text-xs font-medium px-3 py-1.5 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
-};
-
-const styles = {
-  container: { padding: "2rem", maxWidth: "1100px", margin: "0 auto" },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" },
-  error: { color: "red", marginBottom: "1rem" },
-  center: { textAlign: "center", marginTop: "2rem", color: "#666" },
-  filterBar: { display: "flex", gap: "1rem", marginBottom: "1rem", alignItems: "center" },
-  searchInput: { padding: "0.6rem", border: "1px solid #ddd", borderRadius: "4px", fontSize: "0.95rem", flex: 1 },
-  filterSelect: { padding: "0.6rem", border: "1px solid #ddd", borderRadius: "4px", fontSize: "0.95rem", minWidth: "160px" },
-  clearButton: { padding: "0.6rem 1rem", backgroundColor: "#e5e7eb", color: "#333", border: "none", borderRadius: "4px", cursor: "pointer" },
-  resultsCount: { fontSize: "0.85rem", color: "#888", marginBottom: "1rem" },
-  form: { background: "white", padding: "1.5rem", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", marginBottom: "1.5rem" },
-  grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginTop: "1rem" },
-  input: { padding: "0.6rem", border: "1px solid #ddd", borderRadius: "4px", fontSize: "1rem", width: "100%" },
-  formButtons: { display: "flex", gap: "1rem", marginTop: "1rem" },
-  addButton: { padding: "0.6rem 1.2rem", backgroundColor: "#4f46e5", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" },
-  cancelButton: { padding: "0.6rem 1.2rem", backgroundColor: "#e5e7eb", color: "#333", border: "none", borderRadius: "4px", cursor: "pointer" },
-  table: { width: "100%", borderCollapse: "collapse", background: "white", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  thead: { backgroundColor: "#4f46e5", color: "white" },
-  th: { padding: "1rem", textAlign: "left", fontWeight: "600" },
-  tr: { borderBottom: "1px solid #f0f0f0" },
-  td: { padding: "0.9rem 1rem", fontSize: "0.95rem" },
-  badge: { padding: "0.3rem 0.7rem", borderRadius: "20px", color: "white", fontSize: "0.8rem", fontWeight: "bold" },
-  editButton: { padding: "0.3rem 0.8rem", backgroundColor: "#f59e0b", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", marginRight: "0.5rem" },
-  deleteButton: { padding: "0.3rem 0.8rem", backgroundColor: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" },
 };
 
 export default Leads;

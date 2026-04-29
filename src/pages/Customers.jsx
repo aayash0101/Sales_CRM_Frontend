@@ -62,122 +62,165 @@ const Customers = () => {
     }
   };
 
-  const handleCancel = () => {
-    setEditingId(null);
-    setFormData({ name: "", email: "", phone: "", company: "", value: "", notes: "" });
-  };
+  const totalValue = customers.reduce((sum, c) => sum + (c.value || 0), 0);
 
-  if (loading) return <p style={styles.center}>Loading customers...</p>;
+  if (loading) return (
+    <p className="text-center text-gray-400 py-12">Loading customers...</p>
+  );
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1>Customers</h1>
-        <span style={styles.count}>{customers.length} total</span>
+    <div className="max-w-6xl mx-auto px-6 py-8">
+
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Customers</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {customers.length} customer{customers.length !== 1 ? "s" : ""} · Total value ${totalValue.toLocaleString()}
+          </p>
+        </div>
       </div>
 
-      {error && <p style={styles.error}>{error}</p>}
+      {error && (
+        <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-6">
+          {error}
+        </div>
+      )}
 
+      {/* Empty State */}
       {customers.length === 0 ? (
-        <div style={styles.empty}>
-          <p>No customers yet.</p>
-          <p style={styles.emptySub}>Convert a lead to see customers here.</p>
+        <div className="text-center py-16 text-gray-400">
+          <p className="text-lg mb-1">No customers yet</p>
+          <p className="text-sm">Convert a lead to see customers here</p>
         </div>
       ) : (
-        <div style={styles.grid}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {customers.map((customer) => (
-            <div key={customer._id} style={styles.card}>
+            <div
+              key={customer._id}
+              className="bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+            >
               {editingId === customer._id ? (
-                // Edit form inline
+                // Edit Mode
                 <form onSubmit={handleUpdate}>
-                  <h3 style={styles.cardTitle}>Editing Customer</h3>
-                  <div style={styles.fieldGroup}>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4">
+                    Editing Customer
+                  </h3>
+                  <div className="space-y-3 mb-4">
                     <input
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      style={styles.input}
                       placeholder="Name"
                       required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <input
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      style={styles.input}
                       placeholder="Email"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <input
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      style={styles.input}
                       placeholder="Phone"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <input
                       name="company"
                       value={formData.company}
                       onChange={handleChange}
-                      style={styles.input}
                       placeholder="Company"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <input
                       name="value"
                       type="number"
                       value={formData.value}
                       onChange={handleChange}
-                      style={styles.input}
                       placeholder="Deal Value ($)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <textarea
                       name="notes"
                       value={formData.notes}
                       onChange={handleChange}
-                      style={styles.textarea}
                       placeholder="Notes"
                       rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                     />
                   </div>
-                  <div style={styles.cardActions}>
-                    <button type="submit" style={styles.saveButton}>Save</button>
-                    <button type="button" onClick={handleCancel} style={styles.cancelButton}>Cancel</button>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(null)}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </form>
               ) : (
-                // Display mode
+                // Display Mode
                 <>
-                  <div style={styles.cardHeader}>
-                    <h3 style={styles.cardTitle}>{customer.name}</h3>
-                    <span style={styles.valueBadge}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-base font-semibold text-gray-800">
+                        {customer.name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {customer.company || "—"}
+                      </p>
+                    </div>
+                    <span className="bg-green-100 text-green-700 text-sm font-semibold px-3 py-1 rounded-full">
                       ${customer.value?.toLocaleString() || 0}
                     </span>
                   </div>
-                  <div style={styles.cardBody}>
-                    <p style={styles.info}>📧 {customer.email || "—"}</p>
-                    <p style={styles.info}>📞 {customer.phone || "—"}</p>
-                    <p style={styles.info}>🏢 {customer.company || "—"}</p>
+
+                  <div className="space-y-1.5 mb-4">
+                    <p className="text-sm text-gray-500 flex items-center gap-2">
+                      <span>📧</span> {customer.email || "—"}
+                    </p>
+                    <p className="text-sm text-gray-500 flex items-center gap-2">
+                      <span>📞</span> {customer.phone || "—"}
+                    </p>
                     {customer.notes && (
-                      <p style={styles.notes}>📝 {customer.notes}</p>
+                      <p className="text-sm text-gray-400 italic flex items-start gap-2">
+                        <span>📝</span> {customer.notes}
+                      </p>
                     )}
-                    <p style={styles.meta}>
+                  </div>
+
+                  <div className="pt-3 border-t border-gray-50 space-y-1">
+                    <p className="text-xs text-gray-400">
                       Managed by {customer.createdBy?.name || "—"}
                     </p>
                     {customer.lead && (
-                      <p style={styles.meta}>
+                      <p className="text-xs text-gray-400">
                         Converted from lead: {customer.lead?.name}
                       </p>
                     )}
                   </div>
-                  <div style={styles.cardActions}>
+
+                  <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => handleEdit(customer)}
-                      style={styles.editButton}
+                      className="text-xs font-medium px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200 transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(customer._id)}
-                      style={styles.deleteButton}
+                      className="text-xs font-medium px-3 py-1.5 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors"
                     >
                       Delete
                     </button>
@@ -190,33 +233,6 @@ const Customers = () => {
       )}
     </div>
   );
-};
-
-const styles = {
-  container: { padding: "2rem", maxWidth: "1100px", margin: "0 auto" },
-  header: { display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" },
-  count: { backgroundColor: "#4f46e5", color: "white", padding: "0.2rem 0.7rem", borderRadius: "20px", fontSize: "0.85rem" },
-  error: { color: "red", marginBottom: "1rem" },
-  center: { textAlign: "center", marginTop: "2rem", color: "#666" },
-  empty: { textAlign: "center", marginTop: "4rem", color: "#666" },
-  emptySub: { marginTop: "0.5rem", fontSize: "0.9rem", color: "#999" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" },
-  card: { background: "white", borderRadius: "8px", padding: "1.5rem", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" },
-  cardTitle: { fontSize: "1.1rem", fontWeight: "bold", color: "#333" },
-  valueBadge: { backgroundColor: "#10b981", color: "white", padding: "0.2rem 0.7rem", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "bold" },
-  cardBody: { marginBottom: "1rem" },
-  info: { fontSize: "0.9rem", color: "#555", marginBottom: "0.4rem" },
-  notes: { fontSize: "0.9rem", color: "#555", marginTop: "0.5rem", fontStyle: "italic" },
-  meta: { fontSize: "0.8rem", color: "#999", marginTop: "0.4rem" },
-  cardActions: { display: "flex", gap: "0.5rem", marginTop: "1rem" },
-  editButton: { padding: "0.4rem 1rem", backgroundColor: "#f59e0b", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" },
-  deleteButton: { padding: "0.4rem 1rem", backgroundColor: "#ef4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" },
-  saveButton: { padding: "0.4rem 1rem", backgroundColor: "#4f46e5", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" },
-  cancelButton: { padding: "0.4rem 1rem", backgroundColor: "#e5e7eb", color: "#333", border: "none", borderRadius: "4px", cursor: "pointer" },
-  fieldGroup: { display: "flex", flexDirection: "column", gap: "0.7rem", marginBottom: "1rem" },
-  input: { padding: "0.6rem", border: "1px solid #ddd", borderRadius: "4px", fontSize: "0.95rem" },
-  textarea: { padding: "0.6rem", border: "1px solid #ddd", borderRadius: "4px", fontSize: "0.95rem", resize: "vertical" },
 };
 
 export default Customers;

@@ -4,18 +4,39 @@ import { Link } from "react-router-dom";
 import API from "../api/axios";
 
 const stageColors = {
-  proposal: "#6366f1",
-  negotiation: "#f59e0b",
-  won: "#10b981",
-  lost: "#ef4444",
+  proposal: "bg-indigo-100 text-indigo-700",
+  negotiation: "bg-yellow-100 text-yellow-700",
+  won: "bg-green-100 text-green-700",
+  lost: "bg-red-100 text-red-700",
 };
 
 const statusColors = {
-  new: "#6366f1",
-  contacted: "#f59e0b",
-  qualified: "#10b981",
-  converted: "#3b82f6",
+  new: "bg-indigo-100 text-indigo-700",
+  contacted: "bg-yellow-100 text-yellow-700",
+  qualified: "bg-green-100 text-green-700",
+  converted: "bg-blue-100 text-blue-700",
 };
+
+const stageDotColors = {
+  proposal: "bg-indigo-500",
+  negotiation: "bg-yellow-500",
+  won: "bg-green-500",
+  lost: "bg-red-500",
+};
+
+const StatCard = ({ label, value, link, linkLabel, highlight }) => (
+  <div className={`bg-white rounded-xl shadow-sm p-6 border-t-4 ${highlight || "border-indigo-500"}`}>
+    <p className="text-sm text-gray-500 mb-1">{label}</p>
+    <h2 className="text-4xl font-bold text-gray-800 mb-3">{value}</h2>
+    {link ? (
+      <Link to={link} className="text-indigo-600 text-sm hover:underline">
+        {linkLabel} →
+      </Link>
+    ) : (
+      <p className="text-sm text-gray-400">{linkLabel}</p>
+    )}
+  </div>
+);
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -37,142 +58,130 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
-  if (loading) return <p style={styles.center}>Loading dashboard...</p>;
-  if (error) return <p style={styles.error}>{error}</p>;
+  if (loading) (
+    <div className="flex items-center justify-center h-64">
+      <p className="text-gray-400">Loading dashboard...</p>
+    </div>
+  );
 
-  // Normalize dealsByStage into a lookup object
+  if (error) (
+    <div className="flex items-center justify-center h-64">
+      <p className="text-red-500">{error}</p>
+    </div>
+  );
+
   const stageMap = {};
-  stats.dealsByStage.forEach((s) => {
+  stats?.dealsByStage.forEach((s) => {
     stageMap[s._id] = { count: s.count, value: s.value };
   });
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      {/* Welcome */}
-      <div style={styles.welcomeBar}>
+    <div className="max-w-6xl mx-auto px-6 py-8">
+
+      {/* Welcome Bar */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 style={styles.heading}>Welcome back, {user?.name} 👋</h1>
-          <p style={styles.sub}>Here's your sales overview</p>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Welcome back, {user?.name} 👋
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Here's your sales overview
+          </p>
         </div>
-        <span style={styles.roleBadge}>{user?.role}</span>
+        <span className="bg-indigo-100 text-indigo-700 text-sm font-medium px-4 py-1.5 rounded-full capitalize">
+          {user?.role}
+        </span>
       </div>
 
       {/* Stat Cards */}
-      <div style={styles.cardGrid}>
-        <div style={styles.statCard}>
-          <p style={styles.statLabel}>Total Leads</p>
-          <h2 style={styles.statNumber}>{stats.totalLeads}</h2>
-          <Link to="/leads" style={styles.statLink}>View all →</Link>
-        </div>
-        <div style={styles.statCard}>
-          <p style={styles.statLabel}>Total Customers</p>
-          <h2 style={styles.statNumber}>{stats.totalCustomers}</h2>
-          <Link to="/customers" style={styles.statLink}>View all →</Link>
-        </div>
-        <div style={styles.statCard}>
-          <p style={styles.statLabel}>Total Deals</p>
-          <h2 style={styles.statNumber}>{stats.totalDeals}</h2>
-          <Link to="/deals" style={styles.statLink}>View all →</Link>
-        </div>
-        <div style={{ ...styles.statCard, borderTop: "3px solid #10b981" }}>
-          <p style={styles.statLabel}>Won Revenue</p>
-          <h2 style={{ ...styles.statNumber, color: "#10b981" }}>
-            ${stats.wonRevenue.toLocaleString()}
-          </h2>
-          <p style={styles.statLink}>Closed deals total</p>
-        </div>
+      <div className="grid grid-cols-4 gap-6 mb-8">
+        <StatCard
+          label="Total Leads"
+          value={stats?.totalLeads ?? "—"}
+          link="/leads"
+          linkLabel="View all leads"
+        />
+        <StatCard
+          label="Total Customers"
+          value={stats?.totalCustomers ?? "—"}
+          link="/customers"
+          linkLabel="View all customers"
+        />
+        <StatCard
+          label="Total Deals"
+          value={stats?.totalDeals ?? "—"}
+          link="/deals"
+          linkLabel="View all deals"
+        />
+        <StatCard
+          label="Won Revenue"
+          value={`$${(stats?.wonRevenue ?? 0).toLocaleString()}`}
+          linkLabel="Closed deals total"
+          highlight="border-green-500"
+        />
       </div>
 
-      <div style={styles.bottomGrid}>
+      {/* Bottom Grid */}
+      <div className="grid grid-cols-2 gap-6">
+
         {/* Deals by Stage */}
-        <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>Deals by Stage</h3>
-          {["proposal", "negotiation", "won", "lost"].map((stage) => {
-            const data = stageMap[stage] || { count: 0, value: 0 };
-            return (
-              <div key={stage} style={styles.stageRow}>
-                <div style={styles.stageLeft}>
-                  <span
-                    style={{
-                      ...styles.stageDot,
-                      backgroundColor: stageColors[stage],
-                    }}
-                  />
-                  <span style={styles.stageName}>
-                    {stage.charAt(0).toUpperCase() + stage.slice(1)}
-                  </span>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">
+            Deals by Stage
+          </h3>
+          <div className="space-y-3">
+            {["proposal", "negotiation", "won", "lost"].map((stage) => {
+              const data = stageMap[stage] || { count: 0, value: 0 };
+              return (
+                <div key={stage} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <span className={`w-2.5 h-2.5 rounded-full ${stageDotColors[stage]}`} />
+                    <span className="text-sm text-gray-700 capitalize">{stage}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-400">{data.count} deals</span>
+                    <span className="text-sm font-semibold text-gray-700">
+                      ${data.value.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
-                <div style={styles.stageRight}>
-                  <span style={styles.stageCount}>{data.count} deals</span>
-                  <span style={styles.stageValue}>
-                    ${data.value.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {/* Recent Leads */}
-        <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>Recent Leads</h3>
-          {stats.recentLeads.length === 0 ? (
-            <p style={styles.empty}>No leads yet.</p>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h3 className="text-base font-semibold text-gray-800 mb-4">
+            Recent Leads
+          </h3>
+          {!stats?.recentLeads?.length ? (
+            <p className="text-sm text-gray-400">No leads yet.</p>
           ) : (
-            stats.recentLeads.map((lead) => (
-              <div key={lead._id} style={styles.leadRow}>
-                <div style={styles.leadLeft}>
-                  <p style={styles.leadName}>{lead.name}</p>
-                  <p style={styles.leadCompany}>{lead.company || "—"}</p>
+            <div className="space-y-3">
+              {stats.recentLeads.map((lead) => (
+                <div key={lead._id} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{lead.name}</p>
+                    <p className="text-xs text-gray-400">{lead.company || "—"}</p>
+                  </div>
+                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[lead.status]}`}>
+                    {lead.status}
+                  </span>
                 </div>
-                <span
-                  style={{
-                    ...styles.badge,
-                    backgroundColor: statusColors[lead.status],
-                  }}
-                >
-                  {lead.status}
-                </span>
-              </div>
-            ))
+              ))}
+            </div>
           )}
-          <Link to="/leads" style={styles.viewAll}>View all leads →</Link>
+          <Link
+            to="/leads"
+            className="block mt-4 text-sm text-indigo-600 hover:underline"
+          >
+            View all leads →
+          </Link>
         </div>
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: { padding: "2rem", maxWidth: "1100px", margin: "0 auto" },
-  center: { textAlign: "center", marginTop: "2rem", color: "#666" },
-  error: { color: "red", textAlign: "center", marginTop: "2rem" },
-  welcomeBar: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" },
-  heading: { fontSize: "1.8rem", marginBottom: "0.3rem" },
-  sub: { color: "#666" },
-  roleBadge: { backgroundColor: "#4f46e5", color: "white", padding: "0.3rem 1rem", borderRadius: "20px", fontSize: "0.85rem", textTransform: "capitalize" },
-  cardGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.5rem", marginBottom: "2rem" },
-  statCard: { background: "white", padding: "1.5rem", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", borderTop: "3px solid #4f46e5" },
-  statLabel: { color: "#666", fontSize: "0.9rem", marginBottom: "0.5rem" },
-  statNumber: { fontSize: "2.5rem", fontWeight: "bold", color: "#333", marginBottom: "0.5rem" },
-  statLink: { color: "#4f46e5", fontSize: "0.85rem", textDecoration: "none" },
-  bottomGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" },
-  section: { background: "white", padding: "1.5rem", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  sectionTitle: { fontSize: "1.1rem", fontWeight: "bold", marginBottom: "1.2rem", color: "#333" },
-  stageRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.7rem 0", borderBottom: "1px solid #f0f0f0" },
-  stageLeft: { display: "flex", alignItems: "center", gap: "0.7rem" },
-  stageDot: { width: "10px", height: "10px", borderRadius: "50%", display: "inline-block" },
-  stageName: { fontSize: "0.95rem", textTransform: "capitalize" },
-  stageRight: { display: "flex", gap: "1rem", alignItems: "center" },
-  stageCount: { fontSize: "0.85rem", color: "#888" },
-  stageValue: { fontSize: "0.95rem", fontWeight: "bold", color: "#333" },
-  leadRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.7rem 0", borderBottom: "1px solid #f0f0f0" },
-  leadLeft: {},
-  leadName: { fontSize: "0.95rem", fontWeight: "500" },
-  leadCompany: { fontSize: "0.8rem", color: "#888" },
-  badge: { padding: "0.2rem 0.6rem", borderRadius: "20px", color: "white", fontSize: "0.75rem", fontWeight: "bold" },
-  empty: { color: "#888", fontSize: "0.9rem" },
-  viewAll: { display: "block", marginTop: "1rem", color: "#4f46e5", fontSize: "0.85rem", textDecoration: "none" },
 };
 
 export default Dashboard;
