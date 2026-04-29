@@ -6,19 +6,23 @@ const Leads = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [formData, setFormData] = useState({
     name: "", email: "", phone: "", company: "", status: "new",
   });
   const [editingId, setEditingId] = useState(null);
 
-  // 1. Fetch leads on load
   useEffect(() => {
     fetchLeads();
-  }, []);
+  }, [search, statusFilter]);
 
   const fetchLeads = async () => {
     try {
-      const res = await API.get("/leads");
+      const params = {};
+      if (search) params.search = search;
+      if (statusFilter) params.status = statusFilter;
+      const res = await API.get("/leads", { params });
       setLeads(res.data.data);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch leads");
@@ -27,12 +31,10 @@ const Leads = () => {
     }
   };
 
-  // 2. Handle form input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 3. Create or update lead
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -50,7 +52,6 @@ const Leads = () => {
     }
   };
 
-  // 4. Set form to edit mode
   const handleEdit = (lead) => {
     setFormData({
       name: lead.name,
@@ -63,7 +64,6 @@ const Leads = () => {
     setShowForm(true);
   };
 
-  // 5. Delete lead
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this lead?")) return;
     try {
@@ -74,7 +74,6 @@ const Leads = () => {
     }
   };
 
-  // 6. Cancel form
   const handleCancel = () => {
     setFormData({ name: "", email: "", phone: "", company: "", status: "new" });
     setEditingId(null);
@@ -94,15 +93,42 @@ const Leads = () => {
     <div style={styles.container}>
       <div style={styles.header}>
         <h1>Leads</h1>
-        <button
-          style={styles.addButton}
-          onClick={() => setShowForm(!showForm)}
-        >
+        <button style={styles.addButton} onClick={() => setShowForm(!showForm)}>
           {showForm ? "Cancel" : "+ Add Lead"}
         </button>
       </div>
 
       {error && <p style={styles.error}>{error}</p>}
+
+      {/* Search and Filter Bar */}
+      <div style={styles.filterBar}>
+        <input
+          type="text"
+          placeholder="Search by name, email, company..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={styles.searchInput}
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          style={styles.filterSelect}
+        >
+          <option value="">All Statuses</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="qualified">Qualified</option>
+          <option value="converted">Converted</option>
+        </select>
+        {(search || statusFilter) && (
+          <button
+            onClick={() => { setSearch(""); setStatusFilter(""); }}
+            style={styles.clearButton}
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
       {/* Form */}
       {showForm && (
@@ -110,41 +136,11 @@ const Leads = () => {
           <h3>{editingId ? "Edit Lead" : "New Lead"}</h3>
           <form onSubmit={handleSubmit}>
             <div style={styles.grid}>
-              <input
-                name="name"
-                placeholder="Name *"
-                value={formData.name}
-                onChange={handleChange}
-                style={styles.input}
-                required
-              />
-              <input
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-                style={styles.input}
-              />
-              <input
-                name="phone"
-                placeholder="Phone"
-                value={formData.phone}
-                onChange={handleChange}
-                style={styles.input}
-              />
-              <input
-                name="company"
-                placeholder="Company"
-                value={formData.company}
-                onChange={handleChange}
-                style={styles.input}
-              />
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                style={styles.input}
-              >
+              <input name="name" placeholder="Name *" value={formData.name} onChange={handleChange} style={styles.input} required />
+              <input name="email" placeholder="Email" value={formData.email} onChange={handleChange} style={styles.input} />
+              <input name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} style={styles.input} />
+              <input name="company" placeholder="Company" value={formData.company} onChange={handleChange} style={styles.input} />
+              <select name="status" value={formData.status} onChange={handleChange} style={styles.input}>
                 <option value="new">New</option>
                 <option value="contacted">Contacted</option>
                 <option value="qualified">Qualified</option>
@@ -155,11 +151,7 @@ const Leads = () => {
               <button type="submit" style={styles.addButton}>
                 {editingId ? "Update Lead" : "Create Lead"}
               </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                style={styles.cancelButton}
-              >
+              <button type="button" onClick={handleCancel} style={styles.cancelButton}>
                 Cancel
               </button>
             </div>
@@ -167,9 +159,18 @@ const Leads = () => {
         </div>
       )}
 
+      {/* Results count */}
+      <p style={styles.resultsCount}>
+        {leads.length} lead{leads.length !== 1 ? "s" : ""} found
+        {statusFilter && ` · ${statusFilter}`}
+        {search && ` · "${search}"`}
+      </p>
+
       {/* Leads Table */}
       {leads.length === 0 ? (
-        <p style={styles.center}>No leads yet. Add your first lead!</p>
+        <p style={styles.center}>
+          {search || statusFilter ? "No leads match your search." : "No leads yet. Add your first lead!"}
+        </p>
       ) : (
         <table style={styles.table}>
           <thead>
@@ -189,29 +190,14 @@ const Leads = () => {
                 <td style={styles.td}>{lead.email || "—"}</td>
                 <td style={styles.td}>{lead.company || "—"}</td>
                 <td style={styles.td}>
-                  <span style={{
-                    ...styles.badge,
-                    backgroundColor: statusColors[lead.status],
-                  }}>
+                  <span style={{ ...styles.badge, backgroundColor: statusColors[lead.status] }}>
                     {lead.status}
                   </span>
                 </td>
+                <td style={styles.td}>{lead.createdBy?.name || "—"}</td>
                 <td style={styles.td}>
-                  {lead.createdBy?.name || "—"}
-                </td>
-                <td style={styles.td}>
-                  <button
-                    onClick={() => handleEdit(lead)}
-                    style={styles.editButton}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(lead._id)}
-                    style={styles.deleteButton}
-                  >
-                    Delete
-                  </button>
+                  <button onClick={() => handleEdit(lead)} style={styles.editButton}>Edit</button>
+                  <button onClick={() => handleDelete(lead._id)} style={styles.deleteButton}>Delete</button>
                 </td>
               </tr>
             ))}
@@ -227,6 +213,11 @@ const styles = {
   header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" },
   error: { color: "red", marginBottom: "1rem" },
   center: { textAlign: "center", marginTop: "2rem", color: "#666" },
+  filterBar: { display: "flex", gap: "1rem", marginBottom: "1rem", alignItems: "center" },
+  searchInput: { padding: "0.6rem", border: "1px solid #ddd", borderRadius: "4px", fontSize: "0.95rem", flex: 1 },
+  filterSelect: { padding: "0.6rem", border: "1px solid #ddd", borderRadius: "4px", fontSize: "0.95rem", minWidth: "160px" },
+  clearButton: { padding: "0.6rem 1rem", backgroundColor: "#e5e7eb", color: "#333", border: "none", borderRadius: "4px", cursor: "pointer" },
+  resultsCount: { fontSize: "0.85rem", color: "#888", marginBottom: "1rem" },
   form: { background: "white", padding: "1.5rem", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", marginBottom: "1.5rem" },
   grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginTop: "1rem" },
   input: { padding: "0.6rem", border: "1px solid #ddd", borderRadius: "4px", fontSize: "1rem", width: "100%" },
