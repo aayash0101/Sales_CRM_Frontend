@@ -47,7 +47,7 @@ const Dashboard = () => {
   });
 
   return (
-    <div style={styles.container}>
+    <div className="p-8 max-w-6xl mx-auto">
       {/* Welcome */}
       <div style={styles.welcomeBar}>
         <div>

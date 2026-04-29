@@ -1,92 +1,69 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
+  const navLinks = [
+    { path: "/dashboard", label: "Dashboard" },
+    { path: "/leads", label: "Leads" },
+    { path: "/customers", label: "Customers" },
+    { path: "/deals", label: "Deals" },
+  ];
+
   return (
-    <nav style={styles.nav}>
-      <div style={styles.brand}>
-        <Link to="/dashboard" style={styles.brandLink}>Sales CRM</Link>
+    <nav className="bg-indigo-600 text-white shadow-md">
+      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        
+        {/* Brand */}
+        <Link to="/dashboard" className="text-xl font-bold tracking-tight">
+          Sales CRM
+        </Link>
+
+        {user && (
+          <>
+            {/* Nav Links */}
+            <div className="flex items-center gap-6">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`text-sm font-medium transition-opacity ${
+                    location.pathname === link.path
+                      ? "opacity-100 border-b-2 border-white pb-0.5"
+                      : "opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Right Side */}
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm font-medium">{user.name}</p>
+                <p className="text-xs opacity-60 capitalize">{user.role}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="bg-white text-indigo-600 text-sm font-semibold px-4 py-1.5 rounded-md hover:bg-indigo-50 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </>
+        )}
       </div>
-
-      {user && (
-        <>
-          <div style={styles.links}>
-            <Link to="/dashboard" style={styles.link}>Dashboard</Link>
-            <Link to="/leads" style={styles.link}>Leads</Link>
-            <Link to="/deals" style={styles.link}>Deals</Link>
-            <Link to="/customers" style={styles.link}>Customers</Link>
-          </div>
-
-          <div style={styles.right}>
-            <span style={styles.userInfo}>
-              {user.name} · <span style={styles.role}>{user.role}</span>
-            </span>
-            <button onClick={handleLogout} style={styles.button}>
-              Logout
-            </button>
-          </div>
-        </>
-      )}
     </nav>
   );
-};
-
-const styles = {
-  nav: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 2rem",
-    height: "60px",
-    backgroundColor: "#4f46e5",
-    color: "white",
-  },
-  brand: {
-    fontWeight: "bold",
-    fontSize: "1.2rem",
-  },
-  brandLink: {
-    color: "white",
-    textDecoration: "none",
-  },
-  links: {
-    display: "flex",
-    gap: "1.5rem",
-  },
-  link: {
-    color: "white",
-    textDecoration: "none",
-    fontSize: "0.95rem",
-  },
-  right: {
-    display: "flex",
-    alignItems: "center",
-    gap: "1rem",
-  },
-  userInfo: {
-    fontSize: "0.9rem",
-  },
-  role: {
-    opacity: 0.75,
-    fontSize: "0.8rem",
-  },
-  button: {
-    padding: "0.4rem 1rem",
-    backgroundColor: "white",
-    color: "#4f46e5",
-    border: "none",
-    borderRadius: "4px",
-    cursor: "pointer",
-    fontWeight: "bold",
-  },
 };
 
 export default Navbar;
