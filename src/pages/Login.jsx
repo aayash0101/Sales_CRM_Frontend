@@ -19,7 +19,6 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
     try {
       const res = await API.post("/auth/login", formData);
       login(res.data.user, res.data.token);
@@ -32,105 +31,73 @@ const Login = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>CRM Login</h2>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
 
-        {error && <p style={styles.error}>{error}</p>}
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-indigo-600">Sales CRM</h1>
+          <p className="text-gray-500 mt-2">Sign in to your account</p>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <div style={styles.field}>
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              style={styles.input}
-              placeholder="john@test.com"
-              required
-            />
-          </div>
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          {error && (
+            <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
 
-          <div style={styles.field}>
-            <label>Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              style={styles.input}
-              placeholder="••••••"
-              required
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="john@example.com"
+                required
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
 
-          <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                required
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              />
+            </div>
 
-        <p style={styles.link}>
-          Don't have an account? <Link to="/register">Register</Link>
-        </p>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
+            Don't have an account?{" "}
+            <Link to="/register" className="text-indigo-600 font-medium hover:underline">
+              Register
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
-  },
-  card: {
-    background: "white",
-    padding: "2rem",
-    borderRadius: "8px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-    width: "100%",
-    maxWidth: "400px",
-  },
-  title: {
-    marginBottom: "1.5rem",
-    textAlign: "center",
-    color: "#333",
-  },
-  field: {
-    marginBottom: "1rem",
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.4rem",
-  },
-  input: {
-    padding: "0.6rem",
-    border: "1px solid #ddd",
-    borderRadius: "4px",
-    fontSize: "1rem",
-  },
-  button: {
-    width: "100%",
-    padding: "0.75rem",
-    backgroundColor: "#4f46e5",
-    color: "white",
-    border: "none",
-    borderRadius: "4px",
-    fontSize: "1rem",
-    cursor: "pointer",
-    marginTop: "0.5rem",
-  },
-  error: {
-    color: "red",
-    marginBottom: "1rem",
-    textAlign: "center",
-  },
-  link: {
-    textAlign: "center",
-    marginTop: "1rem",
-    fontSize: "0.9rem",
-  },
 };
 
 export default Login;
